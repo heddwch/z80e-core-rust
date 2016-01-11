@@ -1,4 +1,4 @@
 [package]
-name = "z80e-core"
+name = "z80e-core-rust"
 version = "0.1.0"
 authors = ["Quinn Evans <heddwch@lambdaos.org>"]
