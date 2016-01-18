@@ -1,12 +1,21 @@
 //! Z80 emulation library
 extern crate libc;
 mod z80e_core;
-use libc::{ c_void };
+use libc::{ c_void, c_int };
 
 /// An interface for a 16-bit addressed container of bytes.
 pub trait Z80Memory {
-    fn read_byte(&self, address: u16) -> u8;
-    fn write_byte(&self, address: u16, value: u8);
+    fn read_byte(&mut self, address: u16) -> u8;
+    fn write_byte(&mut self, address: u16, value: u8);
+}
+
+impl Z80Memory for Vec<u8> {
+    fn read_byte(&mut self, address: u16) -> u8 {
+        self[address as usize]
+    }
+    fn write_byte(&mut self, address: u16, value: u8) {
+        self[address as usize] = value;
+    }
 }
 
 extern fn read_z80_memory<T: Z80Memory>(memory: *mut c_void, address: u16) -> u8 {
@@ -21,8 +30,8 @@ extern fn write_z80_memory<T: Z80Memory>(memory: *mut c_void, address: u16, valu
 
 /// An interface for implementing one Z80 I/O port.
 pub trait Z80IODevice {
-    fn read_in(&self) -> u8;
-    fn write_out(&self, value: u8);
+    fn read_in(&mut self) -> u8;
+    fn write_out(&mut self, value: u8);
 }
 
 extern fn read_z80_device<T: Z80IODevice>(device: *mut c_void) -> u8 {
@@ -54,12 +63,17 @@ impl Z80 {
         }
     }
     /// Install a device on a Z80 I/O port.
-    pub fn install_device<T: Z80IODevice>(&self, port: u8, device: &mut T) {
+    pub fn install_device<T: Z80IODevice>(&mut self, port: u8, device: &mut T) {
         let port: usize = port as usize;
         unsafe {
             (*self.core).devices[port].device = (device as *mut _) as *mut c_void;
             (*self.core).devices[port].read_in = read_z80_device::<T>;
             (*self.core).devices[port].write_out = write_z80_device::<T>;
+        }
+    }
+    pub fn execute(&mut self, cycles: u32) -> u32 {
+        unsafe {
+            z80e_core::cpu_execute(self.core, cycles as c_int) as u32
         }
     }
 }
