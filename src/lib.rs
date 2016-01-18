@@ -18,6 +18,15 @@ impl Z80Memory for Vec<u8> {
     }
 }
 
+impl Z80Memory for [u8; 0x10000] {
+    fn read_byte(&mut self, address: u16) -> u8 {
+        self[address as usize]
+    }
+    fn write_byte(&mut self, address: u16, value: u8) {
+        self[address as usize] = value;
+    }
+}
+
 extern fn read_z80_memory<T: Z80Memory>(memory: *mut c_void, address: u16) -> u8 {
     let memory: &mut T = unsafe { &mut *(memory as *mut T) };
     memory.read_byte(address)
