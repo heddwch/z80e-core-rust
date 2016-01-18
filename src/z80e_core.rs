@@ -33,7 +33,7 @@ pub struct z80e_io_device {
 #[allow(dead_code)]
 #[repr(C)]
 pub struct z80e_cpu {
-    pub devices: [z80e_io_device; 100],
+    pub devices: [z80e_io_device; 0x100],
     registers: z80e_registers,
     iff1: bool,
     iff2: bool,
