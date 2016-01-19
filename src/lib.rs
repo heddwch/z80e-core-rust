@@ -87,6 +87,14 @@ impl Z80 {
     }
 }
 
+impl Drop for Z80 {
+    fn drop(&mut self) {
+        unsafe {
+            z80e_core::cpu_free(self.core);
+        }
+    }
+}
+
 #[test]
 fn it_works() {
 }
