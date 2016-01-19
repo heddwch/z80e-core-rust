@@ -34,12 +34,12 @@ pub struct z80e_io_device {
 #[repr(C)]
 pub struct z80e_cpu {
     pub devices: [z80e_io_device; 0x100],
-    registers: z80e_registers,
-    iff1: bool,
-    iff2: bool,
+    pub registers: z80e_registers,
+    pub iff1: bool,
+    pub iff2: bool,
     int_mode: u8,
     iff_wait: bool,
-    halted: bool,
+    pub halted: bool,
     prefix: u16,
     pub memory: *mut c_void,
     pub read_byte: extern fn(*mut c_void, u16) -> u8,
