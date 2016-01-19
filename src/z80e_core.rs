@@ -55,8 +55,8 @@ extern {
     pub fn cpu_init() -> *mut z80e_cpu;
     pub fn cpu_free(cpu: *mut z80e_cpu);
     pub fn cpu_interrupt(cpu: *mut z80e_cpu, bus: u8) -> c_int;
+    pub fn cpu_clear_interrupt(cpu: *mut z80e_cpu) -> c_int;
     pub fn cpu_try_interrupt(cpu: *mut z80e_cpu, bus: u8) -> c_int;
-//    pub fn cpu_clear_interrupt(cpu: *mut z80e_cpu) -> c_int;
-//    pub fn cpu_try_clear_interrupt(cpu: *mut z80e_cpu) -> c_int;
+    pub fn cpu_try_clear_interrupt(cpu: *mut z80e_cpu) -> c_int;
     pub fn cpu_execute(cpu: *mut z80e_cpu, cycles: c_int) -> c_int;
 }
