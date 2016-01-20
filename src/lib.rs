@@ -1,7 +1,15 @@
 //! Z80 emulation library
 extern crate libc;
 mod z80e_core;
-use libc::{ c_void, c_int };
+use libc::{ c_void };
+
+pub enum Error {
+    InvalidMutex,
+    WouldBlock,
+    Deadlock,
+    Other(&'static str)
+}
+pub type Result<T> = std::result::Result<T, Error>;
 
 /// An interface for a 16-bit addressed container of bytes.
 pub trait Z80Memory {
@@ -53,6 +61,13 @@ extern fn write_z80_device<T: Z80IODevice>(device: *mut c_void, value: u8) {
     device.write_out(value)
 }
 
+pub enum StopReason {
+    Done,
+    Halted(i32),
+    Hung(i32),
+    Error(Error),
+}
+
 /// Z80 CPU implementation.
 pub struct Z80 {
     core: *mut z80e_core::z80e_cpu,
@@ -80,9 +95,69 @@ impl Z80 {
             (*self.core).devices[port].write_out = write_z80_device::<T>;
         }
     }
-    pub fn execute(&mut self, cycles: u32) -> u32 {
+    pub fn execute(&mut self, cycles: i32) -> StopReason {
         unsafe {
-            z80e_core::cpu_execute(self.core, cycles as c_int) as u32
+            let cycles = z80e_core::cpu_execute(self.core, cycles);
+            if cycles < 0 {
+                return match cycles {
+                    x if x == -libc::EINVAL => StopReason::Error(Error::InvalidMutex),
+                    _ => StopReason::Error(Error::Other("Unknown error")),
+                }
+            } else {
+                if (*self.core).halted {
+                    if (*self.core).iff2 {
+                        return StopReason::Halted(cycles)
+                    } else {
+                        return StopReason::Hung(cycles)
+                    }
+                } else {
+                    return StopReason::Done
+                }
+            }
+        }
+    }
+    pub fn interrupt(&mut self, bus: u8) -> Result<()> {
+        let status = unsafe {
+            z80e_core::cpu_interrupt(self.core, bus)
+        };
+        match status {
+            0 => Ok(()),
+            libc::EINVAL => Err(Error::InvalidMutex),
+            libc::EDEADLK => Err(Error::Deadlock),
+            _ => Err(Error::Other("Unknown error")),
+        }
+    }
+    pub fn clear_interrupt(&mut self) -> Result<()> {
+        let status = unsafe {
+            z80e_core::cpu_clear_interrupt(self.core)
+        };
+        match status {
+            0 => Ok(()),
+            libc::EINVAL => Err(Error::InvalidMutex),
+            libc::EDEADLK => Err(Error::Deadlock),
+            _ => Err(Error::Other("Unknown error")),
+        }
+    }
+    pub fn try_interrupt(&mut self, bus: u8) -> Result<()> {
+        let status = unsafe {
+            z80e_core::cpu_try_interrupt(self.core, bus)
+        };
+        match status {
+            0 => Ok(()),
+            libc::EINVAL => Err(Error::InvalidMutex),
+            libc::EBUSY => Err(Error::WouldBlock),
+            _ => Err(Error::Other("Unknown error")),
+        }
+    }
+    pub fn try_clear_interrupt(&mut self) -> Result<()> {
+        let status = unsafe {
+            z80e_core::cpu_try_clear_interrupt(self.core)
+        };
+        match status {
+            0 => Ok(()),
+            libc::EINVAL => Err(Error::InvalidMutex),
+            libc::EBUSY => Err(Error::WouldBlock),
+            _ => Err(Error::Other("Unknown error")),
         }
     }
 }
