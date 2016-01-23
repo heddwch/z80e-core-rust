@@ -98,7 +98,7 @@ impl Z80 {
     pub fn execute(&mut self, cycles: i32) -> StopReason {
         unsafe {
             let cycles = z80e_core::cpu_execute(self.core, cycles);
-            return if cycles < 0 {
+            if cycles < 0 {
                 match cycles {
                     x if x == -libc::EINVAL => StopReason::Error(Error::InvalidMutex),
                     _ => StopReason::Error(Error::Other("Unknown error")),
