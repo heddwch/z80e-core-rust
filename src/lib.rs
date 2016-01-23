@@ -19,10 +19,18 @@ pub trait Z80Memory {
 
 impl Z80Memory for Vec<u8> {
     fn read_byte(&mut self, address: u16) -> u8 {
-        self[address as usize]
+        let address = address as usize;
+        if address < self.len() {
+            self[address]
+        } else {
+            0
+        }
     }
     fn write_byte(&mut self, address: u16, value: u8) {
-        self[address as usize] = value;
+        let address = address as usize;
+        if address < self.len() {
+            self[address] = value;
+        }
     }
 }
 
