@@ -83,7 +83,7 @@ pub struct Z80 {
 
 impl Z80 {
     /// Allocate a new Z80 core and install its memory.
-    pub fn new<T: Z80Memory>(memory: &T) -> Self {
+    pub fn new<T: Z80Memory>(memory: &mut T) -> Self {
         unsafe {
             let cpu = Z80 {
                 core: z80e_core::cpu_init(),
