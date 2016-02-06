@@ -25,9 +25,9 @@ pub struct z80e_registers {
 #[allow(dead_code)]
 #[repr(C)]
 pub struct z80e_io_device {
-    pub device: *mut c_void,
-    pub read_in: extern fn(*mut c_void) -> u8,
-    pub write_out: extern fn(*mut c_void, u8),
+    pub device: *const c_void,
+    pub read_in: extern fn(*const c_void) -> u8,
+    pub write_out: extern fn(*const c_void, u8),
 }
 
 #[allow(dead_code)]
@@ -41,9 +41,9 @@ pub struct z80e_cpu {
     iff_wait: bool,
     pub halted: bool,
     prefix: u16,
-    pub memory: *mut c_void,
-    pub read_byte: extern fn(*mut c_void, u16) -> u8,
-    pub write_byte: extern fn(*mut c_void, u16, u8),
+    pub memory: *const c_void,
+    pub read_byte: extern fn(*const c_void, u16) -> u8,
+    pub write_byte: extern fn(*const c_void, u16, u8),
     bus_lock: pthread_mutex_t,
     interrupt: bool,
     bus: u8,
@@ -53,10 +53,10 @@ pub struct z80e_cpu {
 #[link(name = "z80e-core")]
 extern {
     pub fn cpu_init() -> *mut z80e_cpu;
-    pub fn cpu_free(cpu: *mut z80e_cpu);
-    pub fn cpu_interrupt(cpu: *mut z80e_cpu, bus: u8) -> c_int;
-    pub fn cpu_clear_interrupt(cpu: *mut z80e_cpu) -> c_int;
-    pub fn cpu_try_interrupt(cpu: *mut z80e_cpu, bus: u8) -> c_int;
-    pub fn cpu_try_clear_interrupt(cpu: *mut z80e_cpu) -> c_int;
-    pub fn cpu_execute(cpu: *mut z80e_cpu, cycles: i32) -> i32;
+    pub fn cpu_free(cpu: *const z80e_cpu);
+    pub fn cpu_interrupt(cpu: *const z80e_cpu, bus: u8) -> c_int;
+    pub fn cpu_clear_interrupt(cpu: *const z80e_cpu) -> c_int;
+    pub fn cpu_try_interrupt(cpu: *const z80e_cpu, bus: u8) -> c_int;
+    pub fn cpu_try_clear_interrupt(cpu: *const z80e_cpu) -> c_int;
+    pub fn cpu_execute(cpu: *const z80e_cpu, cycles: i32) -> i32;
 }
