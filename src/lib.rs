@@ -44,11 +44,11 @@ impl Z80Memory for [u8; 0x10000] {
 }
 
 extern fn read_z80_memory<T: Z80Memory>(memory: *const c_void, address: u16) -> u8 {
-    let memory: &mut T = unsafe { &mut *(memory as *mut T) };
+    let memory: &T = unsafe { &*(memory as *mut T) };
     memory.read_byte(address)
 }
 
-extern fn write_z80_memory<T: Z80Memory>(memory: *const c_void, address: u16, value: u8) {
+extern fn write_z80_memory<T: Z80Memory>(memory: *mut c_void, address: u16, value: u8) {
     let memory: &mut T = unsafe { &mut *(memory as *mut T) };
     memory.write_byte(address, value)
 }
@@ -64,7 +64,7 @@ extern fn read_z80_device<T: Z80IODevice>(device: *const c_void) -> u8 {
     device.read_in()
 }
 
-extern fn write_z80_device<T: Z80IODevice>(device: *const c_void, value: u8) {
+extern fn write_z80_device<T: Z80IODevice>(device: *mut c_void, value: u8) {
     let device: &mut T = unsafe { &mut *(device as *mut T) };
     device.write_out(value)
 }
@@ -88,7 +88,7 @@ impl Z80 {
             let cpu = Z80 {
                 core: z80e_core::cpu_init(),
             };
-            (*cpu.core).memory = (memory as *const _) as *const c_void;
+            (*cpu.core).memory = (memory as *mut _) as *mut c_void;
             (*cpu.core).read_byte = read_z80_memory::<T>;
             (*cpu.core).write_byte = write_z80_memory::<T>;
             cpu

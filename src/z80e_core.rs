@@ -27,7 +27,7 @@ pub struct z80e_registers {
 pub struct z80e_io_device {
     pub device: *const c_void,
     pub read_in: extern fn(*const c_void) -> u8,
-    pub write_out: extern fn(*const c_void, u8),
+    pub write_out: extern fn(*mut c_void, u8),
 }
 
 #[allow(dead_code)]
@@ -43,7 +43,7 @@ pub struct z80e_cpu {
     prefix: u16,
     pub memory: *const c_void,
     pub read_byte: extern fn(*const c_void, u16) -> u8,
-    pub write_byte: extern fn(*const c_void, u16, u8),
+    pub write_byte: extern fn(*mut c_void, u16, u8),
     bus_lock: pthread_mutex_t,
     interrupt: bool,
     bus: u8,
