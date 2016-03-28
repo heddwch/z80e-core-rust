@@ -4,7 +4,7 @@ use self::libc::{ c_int, c_void, pthread_mutex_t };
 
 #[allow(dead_code)]
 #[repr(C)]
-pub struct z80e_registers {
+pub struct Registers {
     af: u16,
     bc: u16,
     de: u16,
@@ -24,7 +24,7 @@ pub struct z80e_registers {
 
 #[allow(dead_code)]
 #[repr(C)]
-pub struct z80e_io_device {
+pub struct IoPort {
     pub device: *const c_void,
     pub read_in: extern fn(*const c_void) -> u8,
     pub write_out: extern fn(*mut c_void, u8),
@@ -32,9 +32,9 @@ pub struct z80e_io_device {
 
 #[allow(dead_code)]
 #[repr(C)]
-pub struct z80e_cpu {
-    pub devices: [z80e_io_device; 0x100],
-    pub registers: z80e_registers,
+pub struct Cpu {
+    pub devices: [IoPort; 0x100],
+    pub registers: Registers,
     pub iff1: bool,
     pub iff2: bool,
     int_mode: u8,
@@ -52,11 +52,11 @@ pub struct z80e_cpu {
 #[allow(dead_code)]
 #[link(name = "z80e-core")]
 extern {
-    pub fn cpu_init() -> *mut z80e_cpu;
-    pub fn cpu_free(cpu: *const z80e_cpu);
-    pub fn cpu_interrupt(cpu: *const z80e_cpu, bus: u8) -> c_int;
-    pub fn cpu_clear_interrupt(cpu: *const z80e_cpu) -> c_int;
-    pub fn cpu_try_interrupt(cpu: *const z80e_cpu, bus: u8) -> c_int;
-    pub fn cpu_try_clear_interrupt(cpu: *const z80e_cpu) -> c_int;
-    pub fn cpu_execute(cpu: *const z80e_cpu, cycles: i32) -> i32;
+    pub fn cpu_init() -> *mut Cpu;
+    pub fn cpu_free(cpu: *const Cpu);
+    pub fn cpu_interrupt(cpu: *const Cpu, bus: u8) -> c_int;
+    pub fn cpu_clear_interrupt(cpu: *const Cpu) -> c_int;
+    pub fn cpu_try_interrupt(cpu: *const Cpu, bus: u8) -> c_int;
+    pub fn cpu_try_clear_interrupt(cpu: *const Cpu) -> c_int;
+    pub fn cpu_execute(cpu: *const Cpu, cycles: i32) -> i32;
 }
